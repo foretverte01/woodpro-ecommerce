@@ -1,0 +1,605 @@
+import React, { useState, useEffect } from 'react';
+import { ShoppingCart, Menu, X, Package, Truck, Shield, Phone, Mail, MapPin, ChevronRight, Minus, Plus, Trash2 } from 'lucide-react';
+
+const WoodEcommerceSite = () => {
+  const [cart, setCart] = useState([]);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('home');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  // Produits
+  const products = [
+    {
+      id: 1,
+      name: "Bois de Chauffage Chêne Premium",
+      category: "chauffage",
+      price: 89.99,
+      unit: "stère",
+      image: "https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=500",
+      description: "Chêne sec 18 mois, 33cm, idéal pour poêles et cheminées",
+      stock: 50
+    },
+    {
+      id: 2,
+      name: "Bois de Chauffage Hêtre",
+      category: "chauffage",
+      price: 79.99,
+      unit: "stère",
+      image: "https://images.unsplash.com/photo-1574856344991-aaa31b6f4ce3?w=500",
+      description: "Hêtre sec, haute qualité, combustion longue durée",
+      stock: 40
+    },
+    {
+      id: 3,
+      name: "Planches de Pin - 2x4x8'",
+      category: "construction",
+      price: 12.99,
+      unit: "pièce",
+      image: "https://images.unsplash.com/photo-1563207153-f403bf289096?w=500",
+      description: "Pin traité, idéal pour charpentes et constructions",
+      stock: 200
+    },
+    {
+      id: 4,
+      name: "Planches de Chêne Massif",
+      category: "construction",
+      price: 45.99,
+      unit: "planche 2m",
+      image: "https://images.unsplash.com/photo-1551916457-596a6c8c0a62?w=500",
+      description: "Chêne massif, qualité premium pour menuiserie",
+      stock: 75
+    },
+    {
+      id: 5,
+      name: "Bois de Chauffage Frêne",
+      category: "chauffage",
+      price: 84.99,
+      unit: "stère",
+      image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500",
+      description: "Frêne sec, excellent pouvoir calorifique",
+      stock: 35
+    },
+    {
+      id: 6,
+      name: "Poutres de Sapin 6x6",
+      category: "construction",
+      price: 32.99,
+      unit: "mètre",
+      image: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=500",
+      description: "Poutres de sapin pour structures et charpentes",
+      stock: 60
+    },
+    {
+      id: 7,
+      name: "Bois de Chauffage Mélangé",
+      category: "chauffage",
+      price: 69.99,
+      unit: "stère",
+      image: "https://images.unsplash.com/photo-1610992015279-be2ee2d065de?w=500",
+      description: "Mélange de bois durs, bon rapport qualité-prix",
+      stock: 80
+    },
+    {
+      id: 8,
+      name: "Planches de Cèdre Rouge",
+      category: "construction",
+      price: 28.99,
+      unit: "planche 2.5m",
+      image: "https://images.unsplash.com/photo-1585128792160-c3c281e07d98?w=500",
+      description: "Cèdre rouge naturellement résistant, pour extérieur",
+      stock: 45
+    }
+  ];
+
+  const filteredProducts = selectedCategory === 'all' 
+    ? products 
+    : products.filter(p => p.category === selectedCategory);
+
+  // Gestion du panier
+  const addToCart = (product) => {
+    const existingItem = cart.find(item => item.id === product.id);
+    if (existingItem) {
+      setCart(cart.map(item => 
+        item.id === product.id 
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      ));
+    } else {
+      setCart([...cart, { ...product, quantity: 1 }]);
+    }
+  };
+
+  const updateQuantity = (id, change) => {
+    setCart(cart.map(item => {
+      if (item.id === id) {
+        const newQuantity = item.quantity + change;
+        return newQuantity > 0 ? { ...item, quantity: newQuantity } : item;
+      }
+      return item;
+    }).filter(item => item.quantity > 0));
+  };
+
+  const removeFromCart = (id) => {
+    setCart(cart.filter(item => item.id !== id));
+  };
+
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  // PayPal Checkout
+  const handlePayPalCheckout = () => {
+    if (cart.length === 0) {
+      alert("Votre panier est vide");
+      return;
+    }
+
+    // Créer les items pour PayPal
+    const items = cart.map(item => ({
+      name: item.name,
+      unit_amount: { currency_code: "EUR", value: item.price.toFixed(2) },
+      quantity: item.quantity
+    }));
+
+    // Redirection vers PayPal (simulée - vous devrez intégrer l'API PayPal réelle)
+    const paypalUrl = `https://www.paypal.com/checkoutnow?token=DEMO`;
+    
+    alert(`Redirection vers PayPal pour paiement de ${cartTotal.toFixed(2)}€\n\nArticles: ${cartCount}\n\nDans un site réel, vous serez redirigé vers PayPal pour finaliser le paiement.`);
+    
+    // En production, utilisez l'API PayPal:
+    // https://developer.paypal.com/docs/checkout/
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-amber-900 text-white sticky top-0 z-50 shadow-lg">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between py-4">
+            <div className="flex items-center space-x-2">
+              <Package className="w-8 h-8" />
+              <div>
+                <h1 className="text-2xl font-bold">WoodPro</h1>
+                <p className="text-xs text-amber-200">Bois Premium EU/US</p>
+              </div>
+            </div>
+
+            {/* Navigation Desktop */}
+            <nav className="hidden md:flex space-x-6">
+              <button onClick={() => setActiveSection('home')} className="hover:text-amber-300">Accueil</button>
+              <button onClick={() => setActiveSection('products')} className="hover:text-amber-300">Produits</button>
+              <button onClick={() => setActiveSection('about')} className="hover:text-amber-300">À propos</button>
+              <button onClick={() => setActiveSection('contact')} className="hover:text-amber-300">Contact</button>
+            </nav>
+
+            <div className="flex items-center space-x-4">
+              <button 
+                onClick={() => setActiveSection('cart')}
+                className="relative hover:text-amber-300"
+              >
+                <ShoppingCart className="w-6 h-6" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+              
+              <button 
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="md:hidden"
+              >
+                {isMenuOpen ? <X /> : <Menu />}
+              </button>
+            </div>
+          </div>
+
+          {/* Navigation Mobile */}
+          {isMenuOpen && (
+            <nav className="md:hidden pb-4 space-y-2">
+              <button onClick={() => { setActiveSection('home'); setIsMenuOpen(false); }} className="block w-full text-left py-2 hover:text-amber-300">Accueil</button>
+              <button onClick={() => { setActiveSection('products'); setIsMenuOpen(false); }} className="block w-full text-left py-2 hover:text-amber-300">Produits</button>
+              <button onClick={() => { setActiveSection('about'); setIsMenuOpen(false); }} className="block w-full text-left py-2 hover:text-amber-300">À propos</button>
+              <button onClick={() => { setActiveSection('contact'); setIsMenuOpen(false); }} className="block w-full text-left py-2 hover:text-amber-300">Contact</button>
+            </nav>
+          )}
+        </div>
+      </header>
+
+      {/* Section Accueil */}
+      {activeSection === 'home' && (
+        <div>
+          {/* Hero */}
+          <section className="bg-gradient-to-r from-amber-800 to-amber-600 text-white py-20">
+            <div className="container mx-auto px-4 text-center">
+              <h2 className="text-5xl font-bold mb-4">Bois de Qualité Premium</h2>
+              <p className="text-xl mb-8">Livraison en Europe et Amérique du Nord</p>
+              <button 
+                onClick={() => setActiveSection('products')}
+                className="bg-white text-amber-900 px-8 py-3 rounded-full font-bold hover:bg-amber-100 transition inline-flex items-center"
+              >
+                Voir nos produits <ChevronRight className="ml-2" />
+              </button>
+            </div>
+          </section>
+
+          {/* Avantages */}
+          <section className="py-16 bg-white">
+            <div className="container mx-auto px-4">
+              <div className="grid md:grid-cols-3 gap-8">
+                <div className="text-center">
+                  <div className="bg-amber-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Truck className="w-8 h-8 text-amber-900" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Livraison Internationale</h3>
+                  <p className="text-gray-600">Europe et Amérique du Nord sous 7-14 jours</p>
+                </div>
+                <div className="text-center">
+                  <div className="bg-amber-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Shield className="w-8 h-8 text-amber-900" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Qualité Garantie</h3>
+                  <p className="text-gray-600">Bois certifié FSC, séché naturellement</p>
+                </div>
+                <div className="text-center">
+                  <div className="bg-amber-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Package className="w-8 h-8 text-amber-900" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Paiement Sécurisé</h3>
+                  <p className="text-gray-600">PayPal, Carte bancaire - 100% sécurisé</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Catégories */}
+          <section className="py-16 bg-gray-100">
+            <div className="container mx-auto px-4">
+              <h2 className="text-3xl font-bold text-center mb-12">Nos Catégories</h2>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div 
+                  onClick={() => { setSelectedCategory('chauffage'); setActiveSection('products'); }}
+                  className="relative h-64 rounded-lg overflow-hidden cursor-pointer group"
+                >
+                  <img src="https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=800" alt="Bois de chauffage" className="w-full h-full object-cover group-hover:scale-110 transition duration-300" />
+                  <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                    <h3 className="text-white text-3xl font-bold">Bois de Chauffage</h3>
+                  </div>
+                </div>
+                <div 
+                  onClick={() => { setSelectedCategory('construction'); setActiveSection('products'); }}
+                  className="relative h-64 rounded-lg overflow-hidden cursor-pointer group"
+                >
+                  <img src="https://images.unsplash.com/photo-1563207153-f403bf289096?w=800" alt="Bois de construction" className="w-full h-full object-cover group-hover:scale-110 transition duration-300" />
+                  <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                    <h3 className="text-white text-3xl font-bold">Bois de Construction</h3>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {/* Section Produits */}
+      {activeSection === 'products' && (
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            <h2 className="text-4xl font-bold text-center mb-8">Notre Catalogue</h2>
+            
+            {/* Filtres */}
+            <div className="flex justify-center space-x-4 mb-12">
+              <button 
+                onClick={() => setSelectedCategory('all')}
+                className={`px-6 py-2 rounded-full font-semibold transition ${selectedCategory === 'all' ? 'bg-amber-900 text-white' : 'bg-white text-amber-900 border-2 border-amber-900'}`}
+              >
+                Tous
+              </button>
+              <button 
+                onClick={() => setSelectedCategory('chauffage')}
+                className={`px-6 py-2 rounded-full font-semibold transition ${selectedCategory === 'chauffage' ? 'bg-amber-900 text-white' : 'bg-white text-amber-900 border-2 border-amber-900'}`}
+              >
+                Chauffage
+              </button>
+              <button 
+                onClick={() => setSelectedCategory('construction')}
+                className={`px-6 py-2 rounded-full font-semibold transition ${selectedCategory === 'construction' ? 'bg-amber-900 text-white' : 'bg-white text-amber-900 border-2 border-amber-900'}`}
+              >
+                Construction
+              </button>
+            </div>
+
+            {/* Grille de produits */}
+            <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {filteredProducts.map(product => (
+                <div key={product.id} className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition">
+                  <img src={product.image} alt={product.name} className="w-full h-48 object-cover" />
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-2">{product.name}</h3>
+                    <p className="text-gray-600 text-sm mb-3">{product.description}</p>
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-2xl font-bold text-amber-900">{product.price}€</span>
+                      <span className="text-sm text-gray-500">/{product.unit}</span>
+                    </div>
+                    <div className="text-sm text-green-600 mb-3">
+                      ✓ En stock ({product.stock} disponibles)
+                    </div>
+                    <button 
+                      onClick={() => addToCart(product)}
+                      className="w-full bg-amber-900 text-white py-2 rounded-lg font-semibold hover:bg-amber-800 transition"
+                    >
+                      Ajouter au panier
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Section Panier */}
+      {activeSection === 'cart' && (
+        <section className="py-16 min-h-screen">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <h2 className="text-4xl font-bold mb-8">Votre Panier</h2>
+            
+            {cart.length === 0 ? (
+              <div className="text-center py-16">
+                <ShoppingCart className="w-24 h-24 mx-auto text-gray-300 mb-4" />
+                <p className="text-xl text-gray-600 mb-4">Votre panier est vide</p>
+                <button 
+                  onClick={() => setActiveSection('products')}
+                  className="bg-amber-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-amber-800"
+                >
+                  Continuer vos achats
+                </button>
+              </div>
+            ) : (
+              <div>
+                {/* Articles du panier */}
+                <div className="bg-white rounded-lg shadow-lg mb-6">
+                  {cart.map(item => (
+                    <div key={item.id} className="flex items-center p-4 border-b last:border-b-0">
+                      <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded" />
+                      <div className="flex-1 ml-4">
+                        <h3 className="font-bold">{item.name}</h3>
+                        <p className="text-gray-600">{item.price}€ / {item.unit}</p>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <button 
+                          onClick={() => updateQuantity(item.id, -1)}
+                          className="bg-gray-200 p-1 rounded hover:bg-gray-300"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                        <span className="font-bold w-8 text-center">{item.quantity}</span>
+                        <button 
+                          onClick={() => updateQuantity(item.id, 1)}
+                          className="bg-gray-200 p-1 rounded hover:bg-gray-300"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="ml-6 font-bold text-lg">
+                        {(item.price * item.quantity).toFixed(2)}€
+                      </div>
+                      <button 
+                        onClick={() => removeFromCart(item.id)}
+                        className="ml-4 text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Résumé */}
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                  <div className="flex justify-between mb-4 text-lg">
+                    <span>Sous-total ({cartCount} articles)</span>
+                    <span className="font-bold">{cartTotal.toFixed(2)}€</span>
+                  </div>
+                  <div className="flex justify-between mb-4 text-lg">
+                    <span>Livraison</span>
+                    <span className="text-green-600 font-semibold">Calculée à la prochaine étape</span>
+                  </div>
+                  <div className="border-t pt-4 flex justify-between mb-6 text-2xl font-bold">
+                    <span>Total</span>
+                    <span className="text-amber-900">{cartTotal.toFixed(2)}€</span>
+                  </div>
+
+                  {/* Boutons de paiement */}
+                  <button 
+                    onClick={handlePayPalCheckout}
+                    className="w-full bg-blue-600 text-white py-4 rounded-lg font-bold text-lg hover:bg-blue-700 transition mb-3 flex items-center justify-center"
+                  >
+                    <svg className="w-6 h-6 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M20.067 8.478c.492.88.556 2.014.3 3.327-.74 3.806-3.276 5.12-6.514 5.12h-.5a.805.805 0 00-.794.68l-.04.22-.63 3.993-.028.14a.795.795 0 01-.787.68H7.264a.477.477 0 01-.471-.548l.896-5.68a.477.477 0 01.471-.402h1.461c3.238 0 5.774-1.314 6.514-5.12.257-1.313.193-2.447-.3-3.327" />
+                    </svg>
+                    Payer avec PayPal
+                  </button>
+                  
+                  <button 
+                    onClick={() => setActiveSection('products')}
+                    className="w-full bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-300 transition"
+                  >
+                    Continuer vos achats
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Section À propos */}
+      {activeSection === 'about' && (
+        <section className="py-16">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <h2 className="text-4xl font-bold mb-8">À Propos de WoodPro</h2>
+            <div className="bg-white rounded-lg shadow-lg p-8">
+              <p className="text-lg mb-4">
+                WoodPro est votre fournisseur de confiance en bois de qualité premium pour l'Europe et l'Amérique du Nord depuis 2015.
+              </p>
+              <p className="text-lg mb-4">
+                Nous proposons une large gamme de bois de chauffage et de construction, soigneusement sélectionnés et certifiés FSC pour garantir une gestion durable des forêts.
+              </p>
+              <h3 className="text-2xl font-bold mb-4 mt-8">Nos Engagements</h3>
+              <ul className="space-y-3">
+                <li className="flex items-start">
+                  <span className="text-amber-900 mr-2">✓</span>
+                  <span>Bois séché naturellement pendant 18-24 mois minimum</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-amber-900 mr-2">✓</span>
+                  <span>Certification FSC et traçabilité complète</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-amber-900 mr-2">✓</span>
+                  <span>Livraison rapide et sécurisée en Europe et Amérique du Nord</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-amber-900 mr-2">✓</span>
+                  <span>Service client disponible 7j/7</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-amber-900 mr-2">✓</span>
+                  <span>Paiement sécurisé via PayPal et carte bancaire</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Section Contact */}
+      {activeSection === 'contact' && (
+        <section className="py-16">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <h2 className="text-4xl font-bold mb-8">Contactez-nous</h2>
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="bg-white rounded-lg shadow-lg p-8">
+                <h3 className="text-2xl font-bold mb-6">Informations</h3>
+                <div className="space-y-4">
+                  <div className="flex items-start">
+                    <MapPin className="w-6 h-6 text-amber-900 mr-3 mt-1" />
+                    <div>
+                      <p className="font-semibold">Adresse Europe</p>
+                      <p className="text-gray-600">123 Rue du Bois, 75001 Paris, France</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <MapPin className="w-6 h-6 text-amber-900 mr-3 mt-1" />
+                    <div>
+                      <p className="font-semibold">Adresse USA</p>
+                      <p className="text-gray-600">456 Wood Street, New York, NY 10001</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <Phone className="w-6 h-6 text-amber-900 mr-3 mt-1" />
+                    <div>
+                      <p className="font-semibold">Téléphone</p>
+                      <p className="text-gray-600">EU: +33 1 23 45 67 89</p>
+                      <p className="text-gray-600">US: +1 555 123 4567</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <Mail className="w-6 h-6 text-amber-900 mr-3 mt-1" />
+                    <div>
+                      <p className="font-semibold">Email</p>
+                      <p className="text-gray-600">contact@woodpro.com</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-lg p-8">
+                <h3 className="text-2xl font-bold mb-6">Envoyez un message</h3>
+                <form className="space-y-4">
+                  <input 
+                    type="text" 
+                    placeholder="Nom complet" 
+                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-amber-900"
+                  />
+                  <input 
+                    type="email" 
+                    placeholder="Email" 
+                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-amber-900"
+                  />
+                  <input 
+                    type="tel" 
+                    placeholder="Téléphone" 
+                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-amber-900"
+                  />
+                  <textarea 
+                    placeholder="Votre message" 
+                    rows="4"
+                    className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-amber-900"
+                  ></textarea>
+                  <button 
+                    type="submit"
+                    className="w-full bg-amber-900 text-white py-3 rounded-lg font-semibold hover:bg-amber-800 transition"
+                  >
+                    Envoyer
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Footer */}
+      <footer className="bg-amber-950 text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <h4 className="text-xl font-bold mb-4">WoodPro</h4>
+              <p className="text-amber-200">Votre fournisseur de bois premium en Europe et Amérique</p>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Produits</h4>
+              <ul className="space-y-2 text-amber-200">
+                <li>Bois de chauffage</li>
+                <li>Bois de construction</li>
+                <li>Planches massives</li>
+                <li>Poutres</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Informations</h4>
+              <ul className="space-y-2 text-amber-200">
+                <li>À propos</li>
+                <li>Livraison</li>
+                <li>Conditions de vente</li>
+                <li>Politique de retour</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">Paiement Sécurisé</h4>
+              <div className="flex space-x-3 mb-4">
+                <div className="bg-white p-2 rounded">
+                  <svg className="w-12 h-8" viewBox="0 0 24 24" fill="#003087">
+                    <path d="M20.067 8.478c.492.88.556 2.014.3 3.327-.74 3.806-3.276 5.12-6.514 5.12h-.5a.805.805 0 00-.794.68l-.04.22-.63 3.993-.028.14a.795.795 0 01-.787.68H7.264a.477.477 0 01-.471-.548l.896-5.68a.477.477 0 01.471-.402h1.461c3.238 0 5.774-1.314 6.514-5.12.257-1.313.193-2.447-.3-3.327" />
+                  </svg>
+                </div>
+                <div className="bg-white p-2 rounded flex items-center">
+                  <span className="text-gray-800 font-bold text-sm">VISA</span>
+                </div>
+                <div className="bg-white p-2 rounded flex items-center">
+                  <span className="text-gray-800 font-bold text-sm">MC</span>
+                </div>
+              </div>
+              <p className="text-amber-200 text-sm">Transactions 100% sécurisées SSL</p>
+            </div>
+          </div>
+          <div className="border-t border-amber-800 mt-8 pt-8 text-center text-amber-200">
+            <p>&copy; 2024 WoodPro. Tous droits réservés. | Livraison EU & USA</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default WoodEcommerceSite;
